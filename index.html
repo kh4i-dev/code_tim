@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Một Dải Ngân Hà Cho Minh Ngọc ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --pink: #ff4da6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        /* Căn giữa toàn bộ các khung */
+        .main-container {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Hộp login + thiệp */
+        #login-container,
+        #card-container {
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 2.5rem 3rem;
+            text-align: center;
+            width: min(90vw, 400px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            transition: 0.5s ease;
+            z-index: 10;
+        }
+
+        #card-container.hidden,
+        #login-container.hidden,
+        #content-container.hidden {
+            opacity: 0;
+            transform: scale(0.97);
+            pointer-events: none;
+        }
+
+        h2 {
+            margin: 0 0 1rem;
+            font-weight: 700;
+            font-size: 1.8rem;
+        }
+
+        p {
+            color: #ffffffcc;
+            font-weight: 300;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            outline: none;
+            margin-top: 1rem;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 15px var(--pink);
+        }
+
+        .btn {
+            margin-top: 1.4rem;
+            padding: 14px 28px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            background: linear-gradient(45deg, #e91e63, var(--pink));
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: 0.25s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.45);
+        }
+
+        #errorMessage {
+            height: 20px;
+            color: #ff7f7f;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Màn hình trái tim */
+        #content-container {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+        }
+
+        #content-container.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #pinkboard {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .love-text {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--pink);
+            font-style: italic;
+            font-size: 1.3rem;
+            text-shadow: 0 0 15px var(--pink);
+            opacity: 0.85;
+            z-index: 20;
+            user-select: none;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+
+            75% {
+                transform: translateX(-8px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="main-container">
+        <!-- Màn hình 1 -->
+        <div id="login-container">
+            <h2>Một thế giới riêng...</h2>
+            <p>Và chỉ một người có thể mở khóa nó.</p>
+            <input type="text" id="nameInput" placeholder="Nhập tên của người đó...">
+            <p id="errorMessage"></p>
+            <button id="loginButton" class="btn">Mở Khóa</button>
+        </div>
+
+        <!-- Màn hình 2 -->
+        <div id="card-container" class="hidden">
+            <h2>Gửi người tớ thương,</h2>
+            <p>Giữa muôn vàn vì sao, cậu không cần là ngôi sao sáng nhất — chỉ cần là ngôi sao duy nhất trong vũ trụ của
+                tớ.</p>
+            <p>Tớ có một món quà nhỏ muốn tặng cậu...</p>
+            <button id="openHeartButton" class="btn">Mở Quà</button>
+        </div>
+
+        <!-- Màn hình 3 -->
+        <div id="content-container" class="hidden">
+            <canvas id="pinkboard"></canvas>
+            <div class="love-text">Anh Yêu Em 💖</div>
+        </div>
+    </div>
+
+    <script>
+        /* --- Galaxy --- */
+        (function () {
+            const c = document.getElementById("bg-canvas");
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true });
+            renderer.setSize(innerWidth, innerHeight);
+            camera.position.z = 5;
+            const g = new THREE.BufferGeometry();
+            const p = new Float32Array(10000 * 3);
+            for (let i = 0; i < p.length; i++)p[i] = (Math.random() - 0.5) * 100;
+            g.setAttribute("position", new THREE.BufferAttribute(p, 3));
+            const m = new THREE.PointsMaterial({ size: 0.05, color: 0xffffff });
+            const s = new THREE.Points(g, m);
+            scene.add(s);
+            function anim() { s.rotation.y += 0.0005; renderer.render(scene, camera); requestAnimationFrame(anim); }
+            anim();
+            window.addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+        })();
+
+        /* --- Logic login --- */
+        const login = document.getElementById("login-container");
+        const card = document.getElementById("card-container");
+        const content = document.getElementById("content-container");
+        const input = document.getElementById("nameInput");
+        const err = document.getElementById("errorMessage");
+
+        document.getElementById("loginButton").onclick = () => {
+            if (input.value.trim().toLowerCase() === "minh ngọc") {
+                login.classList.add("hidden");
+                setTimeout(() => card.classList.remove("hidden"), 400);
+            } else {
+                err.textContent = "Sai rồi... Chỉ 'Minh Ngọc' mới là chìa khóa.";
+                login.style.animation = "shake 0.5s";
+                setTimeout(() => login.style.animation = "", 500);
+            }
+        };
+
+        document.getElementById("openHeartButton").onclick = () => {
+            card.classList.add("hidden");
+            setTimeout(() => {
+                content.classList.remove("hidden");
+                content.classList.add("active");
+                startHeart();
+            }, 600);
+        };
+
+        /* --- Trái tim particle --- */
+        function startHeart() {
+            const settings = { particles: { length: 2000, duration: 2, velocity: 100, effect: -1.3, size: 13 } };
+            class Point {
+                constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+                clone() { return new Point(this.x, this.y); }
+                length(l) {
+                    if (l === undefined) return Math.sqrt(this.x * this.x + this.y * this.y);
+                    this.normalize(); this.x *= l; this.y *= l; return this;
+                }
+                normalize() { const len = this.length(); this.x /= len; this.y /= len; return this; }
+            }
+            class Particle {
+                constructor() { this.position = new Point(); this.velocity = new Point(); this.acceleration = new Point(); this.age = 0; }
+                initialize(x, y, dx, dy) {
+                    this.position.x = x; this.position.y = y; this.velocity.x = dx; this.velocity.y = dy;
+                    this.acceleration.x = dx * settings.particles.effect; this.acceleration.y = dy * settings.particles.effect; this.age = 0;
+                }
+                update(dt) {
+                    this.position.x += this.velocity.x * dt; this.position.y += this.velocity.y * dt;
+                    this.velocity.x += this.acceleration.x * dt; this.velocity.y += this.acceleration.y * dt; this.age += dt;
+                }
+                draw(ctx, img) {
+                    function ease(t) { return (--t) * t * t + 1; }
+                    const size = img.width * ease(this.age / settings.particles.duration);
+                    ctx.globalAlpha = 1 - this.age / settings.particles.duration;
+                    ctx.drawImage(img, this.position.x - size / 2, this.position.y - size / 2, size, size);
+                }
+            }
+            class Pool {
+                constructor(l) {
+                    this.p = new Array(l); for (let i = 0; i < l; i++)this.p[i] = new Particle();
+                    this.firstActive = 0; this.firstFree = 0; this.d = settings.particles.duration;
+                }
+                add(x, y, dx, dy) {
+                    this.p[this.firstFree].initialize(x, y, dx, dy);
+                    this.firstFree++; if (this.firstFree === this.p.length) this.firstFree = 0;
+                    if (this.firstActive === this.firstFree) this.firstActive++;
+                    if (this.firstActive === this.p.length) this.firstActive = 0;
+                }
+                update(dt) {
+                    if (this.firstActive < this.firstFree) { for (let i = this.firstActive; i < this.firstFree; i++)this.p[i].update(dt); }
+                    if (this.firstFree < this.firstActive) {
+                        for (let i = this.firstActive; i < this.p.length; i++)this.p[i].update(dt);
+                        for (let i = 0; i < this.firstFree; i++)this.p[i].update(dt);
+                    }
+                    while (this.p[this.firstActive].age >= this.d && this.firstActive !== this.firstFree) {
+                        this.firstActive++; if (this.firstActive === this.p.length) this.firstActive = 0;
+                    }
+                }
+                draw(ctx, img) {
+                    if (this.firstActive < this.firstFree) { for (let i = this.firstActive; i < this.firstFree; i++)this.p[i].draw(ctx, img); }
+                    if (this.firstFree < this.firstActive) {
+                        for (let i = this.firstActive; i < this.p.length; i++)this.p[i].draw(ctx, img);
+                        for (let i = 0; i < this.firstFree; i++)this.p[i].draw(ctx, img);
+                    }
+                }
+            }
+            (function (canvas) {
+                const ctx = canvas.getContext("2d"); const pool = new Pool(settings.particles.length);
+                const rate = settings.particles.length / settings.particles.duration; let time;
+                function pointOnHeart(t) {
+                    return new Point(160 * Math.pow(Math.sin(t), 3),
+                        130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25);
+                }
+                const img = (function () {
+                    const c = document.createElement("canvas"), cx = c.getContext("2d");
+                    c.width = settings.particles.size; c.height = settings.particles.size;
+                    function to(t) {
+                        const p = pointOnHeart(t);
+                        p.x = settings.particles.size / 2 + p.x * settings.particles.size / 350;
+                        p.y = settings.particles.size / 2 - p.y * settings.particles.size / 350; return p;
+                    }
+                    cx.beginPath(); let t = -Math.PI; let p = to(t); cx.moveTo(p.x, p.y);
+                    while (t < Math.PI) { t += 0.01; p = to(t); cx.lineTo(p.x, p.y); }
+                    cx.closePath(); cx.fillStyle = "#FF5CA4"; cx.fill();
+                    const i = new Image(); i.src = c.toDataURL(); return i;
+                })();
+                function render() {
+                    requestAnimationFrame(render);
+                    const newTime = Date.now() / 1000, dt = newTime - (time || newTime); time = newTime;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const amount = rate * dt; for (let i = 0; i < amount; i++) {
+                        const pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                        const dir = pos.clone().length(settings.particles.velocity);
+                        pool.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                    }
+                    pool.update(dt); pool.draw(ctx, img);
+                }
+                function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+                window.onresize = resize; setTimeout(() => { resize(); render(); }, 10);
+            })(document.getElementById("pinkboard"));
+        }
+    </script>
+</body>
+
+</html>
